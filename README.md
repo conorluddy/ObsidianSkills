@@ -1,0 +1,47 @@
+# ObsidianSkills
+
+Claude Code skills for bridging your Obsidian vault with Claude Code's configuration (agents, skills, plans).
+
+## Skills
+
+### obsidian-link
+
+Link a project's Claude Code agents and skills into your Obsidian vault for browsing and cross-referencing.
+
+**Install:**
+```bash
+# Clone the repo
+git clone https://github.com/conorluddy/ObsidianSkills.git
+
+# Symlink the skill into your Claude Code skills directory
+ln -sf "$(pwd)/ObsidianSkills/obsidian-link" ~/.claude/skills/obsidian-link
+```
+
+**Usage:**
+
+Run `/obsidian-link` from any project in Claude Code.
+
+**What it does:**
+
+- Links project-specific agents and skills into your Obsidian vault as symlinks
+- Syncs global Obsidian-authored skills/agents into `~/.claude/`
+- Creates a `ClaudeCode/` directory in your vault with `Agents/`, `Skills/`, and `Plans/` subdirectories
+
+**Configuration:**
+
+Set your vault path via:
+1. `OBSIDIAN_VAULT` environment variable, or
+2. `~/.obsidian-vault` file containing the absolute path
+
+The skill will confirm the path with you on first run and offer to save it.
+
+## Philosophy
+
+Obsidian is a great authoring surface for prompt-heavy markdown. This repo treats your vault as the central place to browse, search, and cross-reference all your Claude Code configuration — while keeping project-specific files in their repos where they belong.
+
+- **Global agents/skills**: Author in Obsidian, symlinked into `~/.claude/`
+- **Per-project agents/skills**: Live in the repo, symlinked into Obsidian for browsing
+
+## License
+
+MIT
