@@ -1,5 +1,5 @@
 
-<img width="701" height="222" alt="Screenshot 2026-03-05 at 07 05 29" src="https://github.com/user-attachments/assets/e1e88c1a-3b51-4235-b01e-567d924dd42e" />
+<img alt="Screenshot 2026-03-05 at 07 05 29" src="https://github.com/user-attachments/assets/e1e88c1a-3b51-4235-b01e-567d924dd42e" />
 
 # ObsidianSkills
 
