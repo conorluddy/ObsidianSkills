@@ -1,6 +1,6 @@
 ---
 name: obsidian-link
-description: "Link, inspect, or unlink a project's Claude Code agents and skills in an Obsidian vault. Three modes: `/obsidian-link` (link, default), `/obsidian-link status` (health check), `/obsidian-link unlink <project>` (remove). Handles idempotency, broken symlink detection, Plans symlink, and auto-generates an Obsidian index note with wikilinks."
+description: "Link, inspect, or unlink a project's Claude Code agents and skills in an Obsidian vault. Four modes: `/obsidian-link` (link, default), `/obsidian-link status` (health check), `/obsidian-link unlink <project>` (remove), `/obsidian-link init` (configure plan frontmatter in CLAUDE.md). Handles idempotency, broken symlink detection, Plans symlink, and auto-generates an Obsidian index note with wikilinks."
 ---
 
 # obsidian-link
@@ -17,6 +17,7 @@ Parse the user's input to determine mode:
 - `/obsidian-link` or `/obsidian-link link` → **Link mode** (default)
 - `/obsidian-link status` → **Status mode**
 - `/obsidian-link unlink <project>` → **Unlink mode**
+- `/obsidian-link init` → **Init mode** (configure plan frontmatter)
 
 ## Configuration
 
@@ -41,6 +42,45 @@ If found, **confirm with the user**. If not found, ask. Once confirmed, offer to
   │   └── <project>/
   └── Plans/              # ~/.claude/plans → here
 ```
+
+---
+
+## Preflight (runs before every mode)
+
+Before executing any mode, silently check the current setup state. This takes a few seconds and informs how you interact with the user.
+
+### Checks
+
+| Check | How | States |
+|-------|-----|--------|
+| **Vault path** | `~/.obsidian-vault` file or `$OBSIDIAN_VAULT` | configured / missing |
+| **Vault directory** | `<vault>/ClaudeCode/` exists | exists / missing |
+| **Plans symlink** | `readlink ~/.claude/plans` | linked-to-vault / linked-elsewhere / missing |
+| **Plan frontmatter** | Search `~/.claude/CLAUDE.md` for `## Plan Files` section | configured / missing |
+| **Project linked** | `<vault>/ClaudeCode/Agents/<project>/` has symlinks | linked / not-linked |
+
+### Behaviour
+
+Summarise the setup state in a compact block before proceeding with the requested mode:
+
+```
+obsidian-link preflight:
+  Vault:       /path/to/vault (OK)
+  Plans:       ~/.claude/plans → vault (OK)
+  Frontmatter: configured in CLAUDE.md (OK) | not configured
+  Project:     <project> linked (6 agents, 2 skills) | not linked
+```
+
+Then, based on state and requested mode:
+
+- **If vault path is missing** → Ask the user before continuing with any mode. Cannot proceed without it.
+- **If frontmatter is not configured** and mode is `link` or `status` → Append a suggestion after the mode completes:
+  > Tip: Run `/obsidian-link init` to configure plan frontmatter in your CLAUDE.md — plans will then be browsable in Obsidian with Dataview, tags, and graph view.
+- **If frontmatter is not configured** and mode is `init` → Expected, proceed normally.
+- **If frontmatter is already configured** and mode is `init` → Show current config in preflight, then Step 2 of Init mode handles the replace-or-keep flow.
+- **If project is not linked** and mode is `status` → Note it in the status report, suggest running `/obsidian-link` to link.
+
+The preflight should be lightweight and informational — never block a mode from running (except when vault path is missing). Its purpose is context, not gatekeeping.
 
 ---
 
@@ -186,9 +226,9 @@ obsidian-link status
   Vault: <vault-path>
 
   Projects:
-    grapla     — 16 agents, 1 skill, 0 broken
-    afterset   — 4 agents, 2 skills, 1 broken
-      broken: afterset/old-agent.md → /path/that/moved
+    project-a  — 16 agents, 1 skill, 0 broken
+    project-b  — 4 agents, 2 skills, 1 broken
+      broken: project-b/old-agent.md → /path/that/moved
 
   Global: agents OK, 3 skills synced
   Plans:  ~/.claude/plans → vault (OK)
@@ -223,6 +263,119 @@ obsidian-link unlink: <project>
   Removed: 16 agent links, 1 skill link
   Source files in <repo-root> are untouched.
   Index: ClaudeCode/README.md updated
+```
+
+---
+
+## Init Mode
+
+Interactively configures `~/.claude/CLAUDE.md` so that Claude always adds Obsidian-friendly frontmatter when creating plan files. This is a one-time setup — safe to re-run (idempotent).
+
+### Step 1: Resolve vault path
+
+Same as Link mode. Needed to generate the correct `~/.claude/plans` symlink path in instructions.
+
+### Step 2: Check for existing frontmatter instructions
+
+Search `~/.claude/CLAUDE.md` for a `## Plan Files` section (or similar frontmatter block referencing `plans/`).
+
+- **Found** → Show the user the current config, ask if they want to replace or keep it.
+- **Not found** → Proceed to Step 3.
+
+### Step 3: Ask the user about their frontmatter fields
+
+Present a conversational prompt like:
+
+> I'll add instructions to your global CLAUDE.md so plan files always get Obsidian-friendly frontmatter.
+>
+> Here are some common fields — which would you like?
+
+**Default fields** (always included unless explicitly removed):
+| Field | Example | Purpose |
+|-------|---------|---------|
+| `type` | `plan` | Obsidian note type for Dataview/queries |
+| `title` | `User Auth OAuth Flow` | Human-readable title |
+| `status` | `draft \| approved \| done` | Plan lifecycle tracking |
+| `created` | `2026-03-05` | Creation date |
+| `tags` | `[plan, <project>]` | Obsidian tag navigation |
+
+**Optional fields** (suggest these, let user pick):
+| Field | Example | Purpose |
+|-------|---------|---------|
+| `id` | `<project>-oauth-flow` | Unique slug for cross-referencing |
+| `projects` | `[proj-<project>]` | Multi-project attribution |
+| `priority` | `high \| medium \| low` | Prioritisation |
+| `complexity` | `1-5` | Estimation (per user's preference) |
+| `related` | `[[other-plan]]` | Wikilink to related plans |
+| `linear` | `PROJ-123` | Linear/issue tracker reference |
+| `updated` | `2026-03-05` | Last-modified date |
+
+Let the user add, remove, or rename fields freely. They may also suggest entirely custom fields — accept any valid YAML key.
+
+### Step 4: Ask about filename convention
+
+Present the current convention (or a sensible default):
+
+> **Filename format:** `<project>-<kebab-slug>.md` (3–6 words)
+> e.g. `myapp-user-auth-oauth-flow.md`, `backend-stripe-billing-integration.md`
+>
+> Want to adjust this? (e.g. date prefix, different separator, no project prefix)
+
+Accept the user's preference or confirm the default.
+
+### Step 5: Generate the CLAUDE.md section
+
+Build a `## Plan Files` section containing:
+1. The filename convention
+2. A YAML frontmatter template with the chosen fields
+3. Brief inline comments showing example values
+
+Example output (will vary based on user choices):
+
+```markdown
+## Plan Files
+
+When writing plan files (in `~/.claude/plans/`, which symlinks to `ObsidianVault/Plans/`), always include this frontmatter so they're browsable in Obsidian:
+
+Filename should be kebab-case, prefixed with the project name, 3-6 words total, reflecting the plan content. E.g. `myapp-user-auth-oauth-flow.md`, `backend-stripe-billing-integration.md`.
+
+\```yaml
+---
+type: plan
+id: <project>-<kebab-slug>
+title: <human-readable title>
+status: draft | approved | done
+projects:
+  - <project ID>
+tags:
+  - plan
+  - <project tag>
+created: "<YYYY-MM-DD>"
+---
+\```
+```
+
+### Step 6: Preview and confirm
+
+Show the user the exact block that will be inserted (or will replace the existing block). Ask for confirmation before writing.
+
+### Step 7: Write to CLAUDE.md
+
+- If replacing an existing `## Plan Files` section: replace from `## Plan Files` to the next `##` heading (or end of file).
+- If inserting new: add before the first `---` horizontal rule after the initial sections, or append before `# Code Style` if that heading exists. Use best judgement to place it logically.
+- **Never overwrite unrelated sections.**
+
+### Step 8: Report
+
+```
+obsidian-link init: complete
+
+  CLAUDE.md: ~/.claude/CLAUDE.md updated
+  Section:   ## Plan Files (inserted | replaced)
+  Fields:    type, title, status, created, tags, id, projects
+  Filename:  <project>-<kebab-slug>.md
+
+  Plans will now include Obsidian frontmatter automatically.
 ```
 
 ---
