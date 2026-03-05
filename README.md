@@ -3,19 +3,22 @@
 
 # ObsidianSkills
 
-Claude Code skills for bridging your Obsidian vault with Claude Code's configuration (agents, skills, plans).
-
-## Why
-
-Claude Code stores its configuration in dotfiles (`~/.claude/`, `.claude/` per repo). Obsidian is great for browsing, searching, and cross-referencing markdown. This skill connects the two — so you can see all your agents, skills, and plans in Obsidian's graph view, use Dataview queries across them, and author global skills directly in your vault.
-
-**The core idea:** symlinks, not copies. Source files stay where they belong (repos for project config, vault for global config), and symlinks make them visible in the other location.
+A collection of [Claude Code](https://docs.anthropic.com/en/docs/claude-code) skills for integrating your Obsidian vault with development workflows. Symlinks, not copies — source files stay where they belong.
 
 ## Skills
 
-### obsidian-link
+| Skill | Purpose |
+|-------|---------|
+| [obsidian-link](#obsidian-link) | Bridge Claude Code config (agents, skills, plans) into your vault |
+| [github-issues-sync](#github-issues-sync) | Sync GitHub issues into your vault as browsable markdown notes |
 
-Four modes, each idempotent and safe to re-run:
+---
+
+## obsidian-link
+
+Connect Claude Code's dotfile configuration to your Obsidian vault via symlinks, making agents, skills, and plans visible in graph view and Dataview queries.
+
+### Modes
 
 | Mode | Command | Purpose |
 |------|---------|---------|
@@ -24,39 +27,7 @@ Four modes, each idempotent and safe to re-run:
 | **Unlink** | `/obsidian-link unlink <project>` | Remove a project's links from vault |
 | **Init** | `/obsidian-link init` | Configure plan frontmatter in `~/.claude/CLAUDE.md` |
 
-## Install
-
-```bash
-# Clone
-git clone https://github.com/conorluddy/ObsidianSkills.git
-
-# Symlink into Claude Code skills
-ln -sf "$(pwd)/ObsidianSkills/obsidian-link" ~/.claude/skills/obsidian-link
-```
-
-## Configuration
-
-Set your vault path via either:
-1. `OBSIDIAN_VAULT` environment variable
-2. `~/.obsidian-vault` file containing the absolute path
-
-The skill confirms the path on first run and offers to save it.
-
-## How It Works
-
-### Directionality
-
-The symlink direction depends on what owns the source file:
-
-| Config type | Source of truth | Symlinked into |
-|-------------|----------------|----------------|
-| Per-project agents/skills | Project repo (`.claude/`) | Obsidian vault |
-| Global agents/skills | Obsidian vault | `~/.claude/` |
-| Plans | Obsidian vault | `~/.claude/plans` |
-
 ### Vault structure
-
-Running `/obsidian-link` creates this in your vault:
 
 ```
 <vault>/ClaudeCode/
@@ -70,74 +41,120 @@ Running `/obsidian-link` creates this in your vault:
   └── Plans/              # ~/.claude/plans symlinks here
 ```
 
-### Preflight
+### Symlink direction
 
-Every mode starts with a quick preflight check that detects setup state:
+| Config type | Source of truth | Symlinked into |
+|-------------|----------------|----------------|
+| Per-project agents/skills | Project repo (`.claude/`) | Obsidian vault |
+| Global agents/skills | Obsidian vault | `~/.claude/` |
+| Plans | Obsidian vault | `~/.claude/plans` |
 
-```
-obsidian-link preflight:
-  Vault:       /path/to/vault (OK)
-  Plans:       ~/.claude/plans -> vault (OK)
-  Frontmatter: configured in CLAUDE.md (OK)
-  Project:     myapp linked (6 agents, 2 skills)
-```
+### Safety
 
-If plan frontmatter isn't configured, the skill suggests running `/obsidian-link init`. If the vault path is missing, it asks before continuing.
+- Never auto-deletes broken symlinks (reports only)
+- Never overwrites existing non-symlink configs
+- Idempotent — safe to re-run
+- Unlink only removes symlinks, never source files
 
-## Modes
+---
 
-### Link (default)
+## github-issues-sync
 
-```
-/obsidian-link
-```
+One-way sync (GitHub -> Obsidian) that turns issues into vault-native markdown notes with full frontmatter for Dataview queries, tags, and graph view.
 
-1. Resolves vault path and ensures directory structure
-2. Creates `~/.claude/plans` symlink to vault (if not already set)
-3. Detects current project from git root
-4. Symlinks project agents (`.claude/agents/*.md`) into vault
-5. Symlinks project skills (`.claude/skills/*/`) into vault
-6. Syncs global skills/agents from vault into `~/.claude/`
-7. Detects and reports broken symlinks (never auto-deletes)
-8. Regenerates the `ClaudeCode/README.md` index note with wikilinks
+### Modes
 
-### Status
+| Mode | Command | Purpose |
+|------|---------|---------|
+| **Sync** | `/github-issues-sync` | Sync all issues from current repo |
+| **Status** | `/github-issues-sync status` | Show last sync info |
+| **Init** | `/github-issues-sync init` | Configure vault path |
+| **Dry run** | `/github-issues-sync --dry-run` | Preview without writing |
+| **Force** | `/github-issues-sync --force` | Re-sync all, skip unchanged check |
 
-```
-/obsidian-link status
-```
-
-Scans the vault's `ClaudeCode/` directories and reports health across all linked projects — agent/skill counts, broken symlinks, global sync state, plans symlink. Regenerates the index note.
-
-### Unlink
+### Output structure
 
 ```
-/obsidian-link unlink <project>
+<vault>/GithubIssues/<project>/
+  ├── .sync-state.json
+  ├── 1-add-user-auth.md
+  ├── 2-fix-login-bug.md
+  └── 3-update-deps.md
 ```
 
-Removes a project's symlinks from the vault. Asks for confirmation first. Source files in the repo are never touched — only the symlinks in the vault are deleted.
+### Frontmatter
 
-### Init
+Each issue note includes full YAML frontmatter:
 
+```yaml
+---
+type: issue
+id: issue-myapp-42
+title: "Add OAuth support"
+status: open
+issue_number: 42
+repo: conorluddy/myapp
+url: https://github.com/conorluddy/myapp/issues/42
+author: conorluddy
+labels:
+  - enhancement
+  - auth
+assignees:
+  - conorluddy
+milestone: "v2.0"
+projects:
+  - proj-myapp
+tags:
+  - issue
+  - myapp
+created: "2026-03-01"
+updated: "2026-03-04"
+---
 ```
-/obsidian-link init
+
+### Dataview example
+
+```dataview
+TABLE status, author, updated
+FROM "GithubIssues"
+WHERE status = "open"
+SORT updated DESC
 ```
 
-Interactively configures `~/.claude/CLAUDE.md` so Claude always adds Obsidian-friendly YAML frontmatter when creating plan files. This means plans are browsable with Dataview queries, tags, and Obsidian's graph view.
+### Notes
 
-The skill walks you through:
-1. **Field selection** — choose from defaults (`type`, `title`, `status`, `created`, `tags`) and optional fields (`id`, `projects`, `priority`, `complexity`, `related`, `linear`, `updated`) or add your own
-2. **Filename convention** — configure the naming pattern (default: `<project>-<kebab-slug>.md`)
-3. **Preview and confirm** — see the exact CLAUDE.md section before it's written
+- Closed issues are updated in-place, never deleted
+- User content below `<!-- gh-sync-end -->` is preserved across re-syncs
+- Unchanged files are skipped (no timestamp churn) unless `--force` is used
+- Run from different repos to sync different projects
 
-Safe to re-run — detects existing config and offers to update or keep it.
+---
 
-## Safety
+## Install
 
-- **Never auto-deletes** — broken symlinks are reported, not removed
-- **Never overwrites** — existing non-Obsidian configs (real directories, symlinks to other locations) are warned about and skipped
-- **Idempotent** — every mode produces the same result regardless of how many times it runs
-- **Source files untouched** — unlink only removes symlinks in the vault, never repo files
+```bash
+# Clone
+git clone https://github.com/conorluddy/ObsidianSkills.git
+
+# Symlink whichever skills you want into Claude Code
+ln -sf "$(pwd)/ObsidianSkills/obsidian-link" ~/.claude/skills/obsidian-link
+ln -sf "$(pwd)/ObsidianSkills/github-issues-sync" ~/.claude/skills/github-issues-sync
+```
+
+## Configuration
+
+Both skills resolve the vault path the same way:
+
+1. `OBSIDIAN_VAULT` environment variable
+2. `~/.obsidian-vault` file containing the absolute path
+
+Run either skill's `init` mode to configure the path interactively.
+
+## Prerequisites
+
+- `gh` CLI installed and authenticated
+- `jq` installed (`brew install jq`)
+- An Obsidian vault
 
 ## License
 
