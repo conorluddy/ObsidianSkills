@@ -19,13 +19,20 @@ ln -sf "$(pwd)/ObsidianSkills/obsidian-link" ~/.claude/skills/obsidian-link
 
 **Usage:**
 
-Run `/obsidian-link` from any project in Claude Code.
+```
+/obsidian-link              # Link current project to your vault (default)
+/obsidian-link status       # Health check across all linked projects
+/obsidian-link unlink app   # Remove a project's links from the vault
+```
 
 **What it does:**
 
 - Links project-specific agents and skills into your Obsidian vault as symlinks
 - Syncs global Obsidian-authored skills/agents into `~/.claude/`
 - Creates a `ClaudeCode/` directory in your vault with `Agents/`, `Skills/`, and `Plans/` subdirectories
+- Detects broken symlinks and reports them without auto-deleting
+- Generates an index note with wikilinks for Obsidian's graph view
+- Idempotent — safe to run repeatedly
 
 **Configuration:**
 
