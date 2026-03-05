@@ -38,11 +38,11 @@ Or install as a Claude Code skill by symlinking into a project's `.claude/skills
 ```
 ObsidianVault/
   GithubIssues/
-    Grapla/
+    MyApp/
       1-initial-setup.md
       42-fix-login-bug.md
       .sync-state.json
-    FrictionList/
+    AnotherRepo/
       7-add-dark-mode.md
       ...
 ```
@@ -54,23 +54,23 @@ Each issue gets frontmatter for Obsidian queries:
 ```yaml
 ---
 type: issue
-id: issue-grapla-42
+id: issue-myapp-42
 title: "Fix login bug"
 status: open
 issue_number: 42
-repo: conorluddy/Grapla
-url: https://github.com/conorluddy/Grapla/issues/42
+repo: yourname/myapp
+url: https://github.com/yourname/myapp/issues/42
 labels:
   - bug
   - v1
 assignees:
-  - conorluddy
+  - yourname
 milestone: "v1 Launch"
 projects:
-  - proj-grapla
+  - proj-myapp
 tags:
   - issue
-  - grapla
+  - myapp
 created: "2026-01-15"
 updated: "2026-03-05"
 ---
@@ -80,7 +80,7 @@ updated: "2026-03-05"
 
 ```dataview
 TABLE status, labels, milestone
-FROM "GithubIssues/Grapla"
+FROM "GithubIssues/MyApp"
 WHERE status = "open"
 SORT issue_number DESC
 ```

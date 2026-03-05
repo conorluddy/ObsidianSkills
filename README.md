@@ -93,14 +93,14 @@ id: issue-myapp-42
 title: "Add OAuth support"
 status: open
 issue_number: 42
-repo: conorluddy/myapp
-url: https://github.com/conorluddy/myapp/issues/42
-author: conorluddy
+repo: yourname/myapp
+url: https://github.com/yourname/myapp/issues/42
+author: yourname
 labels:
   - enhancement
   - auth
 assignees:
-  - conorluddy
+  - yourname
 milestone: "v2.0"
 projects:
   - proj-myapp
@@ -134,7 +134,7 @@ SORT updated DESC
 
 ```bash
 # Clone
-git clone https://github.com/conorluddy/ObsidianSkills.git
+git clone https://github.com/yourname/ObsidianSkills.git
 
 # Symlink whichever skills you want into Claude Code
 ln -sf "$(pwd)/ObsidianSkills/obsidian-link" ~/.claude/skills/obsidian-link
