@@ -1,6 +1,6 @@
-# github-issues-sync
+# obsidian-github-issue-fetcher
 
-Sync GitHub issues into your Obsidian vault as markdown notes. One-way (GitHub → Obsidian), zero dependencies beyond `gh` and `jq`.
+Fetch GitHub issues into your Obsidian vault as markdown notes. One-way (GitHub → Obsidian), zero dependencies beyond `gh` and `jq`.
 
 ## Setup
 
@@ -10,7 +10,7 @@ Sync GitHub issues into your Obsidian vault as markdown notes. One-way (GitHub �
 
 # 2. Sync issues from any repo
 cd ~/Development/MyProject
-bash ~/Development/ObsidianSkills/github-issues-sync/sync.sh
+bash ~/Development/ObsidianSkills/obsidian-github-issue-fetcher/sync.sh
 ```
 
 Or install as a Claude Code skill by symlinking into a project's `.claude/skills/`.
@@ -18,7 +18,7 @@ Or install as a Claude Code skill by symlinking into a project's `.claude/skills
 ## Usage
 
 ```bash
-./sync.sh              # Sync current repo's issues to vault
+./sync.sh              # Fetch current repo's issues into vault
 ./sync.sh --init       # Configure vault path (~/.obsidian-vault)
 ./sync.sh --status     # Show last sync time and issue count
 ./sync.sh --dry-run    # Preview what would happen, write nothing

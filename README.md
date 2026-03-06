@@ -10,7 +10,7 @@ A collection of [Claude Code](https://docs.anthropic.com/en/docs/claude-code) sk
 | Skill | Purpose |
 |-------|---------|
 | [obsidian-link](#obsidian-link) | Bridge Claude Code config (agents, skills, plans) into your vault |
-| [github-issues-sync](#github-issues-sync) | Sync GitHub issues into your vault as browsable markdown notes |
+| [obsidian-github-issue-fetcher](#obsidian-github-issue-fetcher) | Fetch GitHub issues into your vault as browsable markdown notes |
 
 ---
 
@@ -58,19 +58,19 @@ Connect Claude Code's dotfile configuration to your Obsidian vault via symlinks,
 
 ---
 
-## github-issues-sync
+## obsidian-github-issue-fetcher
 
-One-way sync (GitHub -> Obsidian) that turns issues into vault-native markdown notes with full frontmatter for Dataview queries, tags, and graph view.
+One-way fetch (GitHub → Obsidian) that turns issues into vault-native markdown notes with full frontmatter for Dataview queries, tags, and graph view.
 
 ### Modes
 
 | Mode | Command | Purpose |
 |------|---------|---------|
-| **Sync** | `/github-issues-sync` | Sync all issues from current repo |
-| **Status** | `/github-issues-sync status` | Show last sync info |
-| **Init** | `/github-issues-sync init` | Configure vault path |
-| **Dry run** | `/github-issues-sync --dry-run` | Preview without writing |
-| **Force** | `/github-issues-sync --force` | Re-sync all, skip unchanged check |
+| **Fetch** | `/obsidian-github-issue-fetcher` | Fetch all issues from current repo |
+| **Status** | `/obsidian-github-issue-fetcher status` | Show last fetch info |
+| **Init** | `/obsidian-github-issue-fetcher init` | Configure vault path |
+| **Dry run** | `/obsidian-github-issue-fetcher --dry-run` | Preview without writing |
+| **Force** | `/obsidian-github-issue-fetcher --force` | Re-fetch all, skip unchanged check |
 
 ### Output structure
 
@@ -138,7 +138,7 @@ git clone https://github.com/yourname/ObsidianSkills.git
 
 # Symlink whichever skills you want into Claude Code
 ln -sf "$(pwd)/ObsidianSkills/obsidian-link" ~/.claude/skills/obsidian-link
-ln -sf "$(pwd)/ObsidianSkills/github-issues-sync" ~/.claude/skills/github-issues-sync
+ln -sf "$(pwd)/ObsidianSkills/obsidian-github-issue-fetcher" ~/.claude/skills/obsidian-github-issue-fetcher
 ```
 
 ## Configuration

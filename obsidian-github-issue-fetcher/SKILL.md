@@ -1,21 +1,21 @@
 ---
-name: github-issues-sync
-description: "Sync GitHub issues into Obsidian as markdown notes — turn your vault into an issue tracker with Dataview queries, tags, and graph view. Sync issues as notes, GitHub issues in Obsidian, issue tracker in vault, Dataview issues dashboard. Four modes: `/github-issues-sync` (sync, default), `/github-issues-sync status` (last sync info), `/github-issues-sync init` (configure vault path), `/github-issues-sync --dry-run` (preview without writing). Also supports `--force` to re-sync all issues regardless of changes."
+name: obsidian-github-issue-fetcher
+description: "Fetch GitHub issues into Obsidian as markdown notes — turn your vault into an issue tracker with Dataview queries, tags, and graph view. Fetch issues as notes, GitHub issues in Obsidian, issue tracker in vault, Dataview issues dashboard. Four modes: `/obsidian-github-issue-fetcher` (fetch, default), `/obsidian-github-issue-fetcher status` (last fetch info), `/obsidian-github-issue-fetcher init` (configure vault path), `/obsidian-github-issue-fetcher --dry-run` (preview without writing). Also supports `--force` to re-fetch all issues regardless of changes."
 ---
 
-# github-issues-sync
+# obsidian-github-issue-fetcher
 
-Sync GitHub issues from the current repo into the Obsidian vault as browsable, cross-referenceable markdown notes.
+Fetch GitHub issues from the current repo into the Obsidian vault as browsable, cross-referenceable markdown notes.
 
 **Direction**: One-way (GitHub → Obsidian). Issues become vault citizens with frontmatter for Dataview queries, tags, and graph view.
 
 ## Mode Dispatch
 
 Parse the user's input to determine mode:
-- `/github-issues-sync` → **Sync mode** (default)
-- `/github-issues-sync status` → **Status mode**
-- `/github-issues-sync init` → **Init mode** (configure vault path)
-- `/github-issues-sync --dry-run` → **Dry run mode**
+- `/obsidian-github-issue-fetcher` → **Fetch mode** (default)
+- `/obsidian-github-issue-fetcher status` → **Status mode**
+- `/obsidian-github-issue-fetcher init` → **Init mode** (configure vault path)
+- `/obsidian-github-issue-fetcher --dry-run` → **Dry run mode**
 
 ## Execution
 
